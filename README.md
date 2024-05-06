@@ -1,29 +1,13 @@
 # PHP Resque Worker (and Enqueue)
+PHP Resque is a fork of PHP-Resque pacakge from https://github.com/resque/php-resque.
+The project inherits MIT licence from php-resque project.
 
-PHP Resque is a Redis-backed library for creating background jobs, placing those
-jobs on one or more queues, and processing them later.
+This fork is specifically designed to ensure compatibility with PHP 8.3 onwards.
 
-![PHP-Resque Logo](https://github.com/resque/php-resque/raw/master/extras/php-resque.png)
-
-[![License (MIT)](https://img.shields.io/packagist/l/resque/php-resque.svg?style=flat-square)](https://github.com/resque/php-resque)
-[![PHP Version](https://img.shields.io/packagist/php-v/resque/php-resque.svg?style=flat-square&logo=php&logoColor=white)](https://packagist.org/packages/resque/php-resque)
-[![Latest Version](https://img.shields.io/packagist/v/resque/php-resque.svg?style=flat-square)](https://packagist.org/packages/resque/php-resque)
-[![Latest Unstable Version](https://img.shields.io/packagist/vpre/resque/php-resque.svg?style=flat-square)](https://packagist.org/packages/resque/php-resque)
-[![Downloads](https://img.shields.io/packagist/dt/resque/php-resque.svg?style=flat-square)](https://packagist.org/packages/resque/php-resque)
-
-[![Build Status](https://img.shields.io/github/checks-status/resque/php-resque/master)]()
-[![Dependency Status](https://img.shields.io/librariesio/github/resque/php-resque.svg?style=flat-square)](https://libraries.io/github/resque/php-resque)
-
-[![Latest Release](https://img.shields.io/github/release/resque/php-resque.svg?style=flat-square&logo=github&logoColor=white)](https://github.com/resque/php-resque)
-[![Latest Release Date](https://img.shields.io/github/release-date/resque/php-resque.svg?style=flat-square&logo=github&logoColor=white)](https://github.com/resque/php-resque)
-[![Commits Since Latest Release](https://img.shields.io/github/commits-since/resque/php-resque/latest.svg?style=flat-square&logo=github&logoColor=white)](https://github.com/resque/php-resque)
-[![Maintenance Status](https://img.shields.io/maintenance/yes/2021.svg?style=flat-square&logo=github&logoColor=white)](https://github.com/resque/php-resque)
-
-[![Contributors](https://img.shields.io/github/contributors/resque/php-resque.svg?style=flat-square&logo=github&logoColor=white)](https://github.com/resque/php-resque)
-[![Chat on Slack](https://img.shields.io/badge/chat-Slack-blue.svg?style=flat-square&logo=slack&logoColor=white)](https://join.slack.com/t/php-resque/shared_invite/enQtNTIwODk0OTc1Njg3LWYyODczMTZjMzI2N2JkYWUzM2FlNDk5ZjY2ZGM4Njc4YjFiMzU2ZWFjOGQxMDIyNmE5MTBlNWEzODBiMmVmOTI)
+Licence: MIT
+PHP Version: >=8.3.0
 
 ## Background
-
 Resque was pioneered by GitHub, and written in Ruby. What you're seeing here
 started life as an almost direct port of the Resque worker and enqueue system to
 PHP.
@@ -68,7 +52,7 @@ See <https://github.com/chrisboulton/php-resque> for more on that history.
 
 ## Requirements
 
--   PHP 5.3+
+-   PHP 8.3+
 -   Redis 2.2+
 -   Optional but Recommended: Composer
 
@@ -438,7 +422,7 @@ Resque\Event::listen('eventName', [callback]);
 -   A string with the name of a function
 -   An array containing an object and method to call
 -   An array containing an object and a static method to call
--   A closure (PHP 5.3+)
+-   A closure (PHP 8.3+)
 
 Events may pass arguments (documented below), so your callback should accept
 these arguments.
