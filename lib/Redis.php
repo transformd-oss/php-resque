@@ -26,75 +26,29 @@ class Redis
 	/**
 	 * A default host to connect to
 	 */
-	const DEFAULT_HOST = 'localhost';
+	public const DEFAULT_HOST = 'localhost';
 
 	/**
 	 * The default Redis port
 	 */
-	const DEFAULT_PORT = 6379;
+	public const DEFAULT_PORT = 6379;
 
 	/**
 	 * The default Redis Database number
 	 */
-	const DEFAULT_DATABASE = 0;
+	public const DEFAULT_DATABASE = 0;
 
 	/**
 	 * Connection driver
 	 * @var mixed
 	 */
-	private $driver;
+	public $driver;
 
 	/**
 	 * @var array List of all commands in Redis that supply a key as their
 	 *	first argument. Used to prefix keys with the Resque namespace.
 	 */
-	private $keyCommands = array(
-		'exists',
-		'del',
-		'type',
-		'keys',
-		'expire',
-		'ttl',
-		'move',
-		'set',
-		'setex',
-		'get',
-		'getset',
-		'setnx',
-		'incr',
-		'incrby',
-		'decr',
-		'decrby',
-		'rpush',
-		'lpush',
-		'llen',
-		'lrange',
-		'ltrim',
-		'lindex',
-		'lset',
-		'lrem',
-		'lpop',
-		'blpop',
-		'rpop',
-		'sadd',
-		'srem',
-		'spop',
-		'scard',
-		'sismember',
-		'smembers',
-		'srandmember',
-		'zadd',
-		'zrem',
-		'zrange',
-		'zrevrange',
-		'zrangebyscore',
-		'zcard',
-		'zscore',
-		'zremrangebyscore',
-		'sort',
-		'rename',
-		'rpoplpush'
-	);
+	private $keyCommands = ['exists', 'del', 'type', 'keys', 'expire', 'ttl', 'move', 'set', 'setex', 'get', 'getset', 'setnx', 'incr', 'incrby', 'decr', 'decrby', 'rpush', 'lpush', 'llen', 'lrange', 'ltrim', 'lindex', 'lset', 'lrem', 'lpop', 'blpop', 'rpop', 'sadd', 'srem', 'spop', 'scard', 'sismember', 'smembers', 'srandmember', 'zadd', 'zrem', 'zrange', 'zrevrange', 'zrangebyscore', 'zcard', 'zscore', 'zremrangebyscore', 'sort', 'rename', 'rpoplpush'];
 	// sinterstore
 	// sunion
 	// sunionstore
@@ -113,7 +67,7 @@ class Redis
 	 */
 	public static function prefix($namespace)
 	{
-		if (substr($namespace, -1) !== ':' && $namespace != '') {
+		if (!str_ends_with($namespace, ':') && $namespace != '') {
 			$namespace .= ':';
 		}
 		self::$defaultNamespace = $namespace;
@@ -135,13 +89,13 @@ class Redis
 			} elseif (is_array($server)) {
 				$this->driver = new Credis_Cluster($server);
 			} else {
-				list($host, $port, $dsnDatabase, $user, $password, $options) = self::parseDsn($server);
+				[$host, $port, $dsnDatabase, $user, $password, $options] = self::parseDsn($server);
 				// $user is not used, only $password
 
 				// Look for known Credis_Client options
 				$timeout = isset($options['timeout']) ? intval($options['timeout']) : null;
-				$persistent = isset($options['persistent']) ? $options['persistent'] : '';
-				$maxRetries = isset($options['max_connect_retries']) ? $options['max_connect_retries'] : 0;
+				$persistent = $options['persistent'] ?? '';
+				$maxRetries = $options['max_connect_retries'] ?? 0;
 
 				$this->driver = new Credis_Client($host, $port, $timeout, $persistent);
 				$this->driver->setMaxConnectRetries($maxRetries);
@@ -184,20 +138,13 @@ class Redis
 			// Use a sensible default for an empty DNS string
 			$dsn = 'redis://' . self::DEFAULT_HOST;
 		}
-		if (substr($dsn, 0, 7) === 'unix://') {
-			return array(
-				$dsn,
-				null,
-				false,
-				null,
-				null,
-				null,
-			);
+		if (str_starts_with($dsn, 'unix://')) {
+			return [$dsn, null, false, null, null, null];
 		}
 		$parts = parse_url($dsn);
 
 		// Check the URI scheme
-		$validSchemes = array('redis', 'tcp');
+		$validSchemes = ['redis', 'tcp'];
 		if (isset($parts['scheme']) && ! in_array($parts['scheme'], $validSchemes)) {
 			throw new InvalidArgumentException("Invalid DSN. Supported schemes are " . implode(', ', $validSchemes));
 		}
@@ -219,10 +166,10 @@ class Redis
 		}
 
 		// Extract any 'user' values
-		$user = isset($parts['user']) ? $parts['user'] : false;
+		$user = $parts['user'] ?? false;
 
 		// Convert the query string into an associative array
-		$options = array();
+		$options = [];
 		if (isset($parts['query'])) {
 			// Parse the query string into an array
 			parse_str($parts['query'], $options);
@@ -237,17 +184,10 @@ class Redis
 			$pass = isset($parts['pass']) ? base64_decode($parts['pass']) : false;
 		} else {
 			//extracting pass directly since 'password-encoding' parameter is not present
-			$pass = isset($parts['pass']) ? $parts['pass'] : false;
+			$pass = $parts['pass'] ?? false;
 		}
 
-		return array(
-			$parts['host'],
-			$port,
-			$database,
-			$user,
-			$pass,
-			$options,
-		);
+		return [$parts['host'], $port, $database, $user, $pass, $options];
 	}
 
 	/**
@@ -285,8 +225,8 @@ class Redis
 	{
 		$prefix = self::getPrefix();
 
-		if (substr($string, 0, strlen($prefix)) == $prefix) {
-			$string = substr($string, strlen($prefix), strlen($string));
+		if (str_starts_with((string) $string, (string) $prefix)) {
+			$string = substr((string) $string, strlen((string) $prefix), strlen((string) $string));
 		}
 		return $string;
 	}

@@ -28,9 +28,9 @@ class RedisFailure implements FailureInterface
 		$data = new stdClass();
 		$data->failed_at = date('c');
 		$data->payload = $payload;
-		$data->exception = get_class($exception);
+		$data->exception = $exception::class;
 		$data->error = $exception->getMessage();
-		$data->backtrace = explode("\n", $exception->getTraceAsString());
+		$data->backtrace = explode("\n", (string) $exception->getTraceAsString());
 		$data->worker = (string)$worker;
 		$data->queue = $queue;
 		$data = json_encode($data);

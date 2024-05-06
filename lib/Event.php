@@ -14,7 +14,7 @@ class Event
 	/**
 	 * @var array Array containing all registered callbacks, indexked by event name.
 	 */
-	private static $events = array();
+	private static $events = [];
 
 	/**
 	 * Raise a given event with the supplied data.
@@ -23,10 +23,10 @@ class Event
 	 * @param mixed $data Optional, any data that should be passed to each callback.
 	 * @return true
 	 */
-	public static function trigger($event, $data = null)
+	public static function trigger($event, mixed $data = null)
 	{
 		if (!is_array($data)) {
-			$data = array($data);
+			$data = [$data];
 		}
 
 		if (empty(self::$events[$event])) {
@@ -50,10 +50,10 @@ class Event
 	 * @param mixed $callback Any callback callable by call_user_func_array.
 	 * @return true
 	 */
-	public static function listen($event, $callback)
+	public static function listen($event, mixed $callback)
 	{
 		if (!isset(self::$events[$event])) {
-			self::$events[$event] = array();
+			self::$events[$event] = [];
 		}
 
 		self::$events[$event][] = $callback;
@@ -67,7 +67,7 @@ class Event
 	 * @param mixed $callback The callback as defined when listen() was called.
 	 * @return true
 	 */
-	public static function stopListening($event, $callback)
+	public static function stopListening($event, mixed $callback)
 	{
 		if (!isset(self::$events[$event])) {
 			return true;
@@ -86,6 +86,6 @@ class Event
 	 */
 	public static function clearListeners()
 	{
-		self::$events = array();
+		self::$events = [];
 	}
 }

@@ -17,9 +17,9 @@ use Resque\Event;
  */
 class SchedulerWorker
 {
-	const LOG_NONE = 0;
-	const LOG_NORMAL = 1;
-	const LOG_VERBOSE = 2;
+	public const LOG_NONE = 0;
+	public const LOG_NORMAL = 1;
+	public const LOG_VERBOSE = 2;
 
 	/**
 	 * @var int Current log level of this worker.
@@ -99,13 +99,9 @@ class SchedulerWorker
 		while ($item = Scheduler::nextItemForTimestamp($timestamp)) {
 			$this->log('queueing ' . $item['class'] . ' in ' . $item['queue'] . ' [delayed]');
 
-			Event::trigger('beforeDelayedEnqueue', array(
-				'queue' => $item['queue'],
-				'class' => $item['class'],
-				'args'  => $item['args'],
-			));
+			Event::trigger('beforeDelayedEnqueue', ['queue' => $item['queue'], 'class' => $item['class'], 'args'  => $item['args']]);
 
-			$payload = array_merge(array($item['queue'], $item['class']), $item['args']);
+			$payload = array_merge([$item['queue'], $item['class']], $item['args']);
 			call_user_func_array('Resque::enqueue', $payload);
 		}
 	}
@@ -161,11 +157,11 @@ class SchedulerWorker
 			return;
 		}
 
-		pcntl_signal(SIGTERM, array($this, 'shutdown'));
-		pcntl_signal(SIGINT, array($this, 'shutdown'));
-		pcntl_signal(SIGQUIT, array($this, 'shutdown'));
-		pcntl_signal(SIGUSR2, array($this, 'pauseProcessing'));
-		pcntl_signal(SIGCONT, array($this, 'unPauseProcessing'));
+		pcntl_signal(SIGTERM, fn() => $this->shutdown());
+		pcntl_signal(SIGINT, fn() => $this->shutdown());
+		pcntl_signal(SIGQUIT, fn() => $this->shutdown());
+		pcntl_signal(SIGUSR2, fn() => $this->pauseProcessing());
+		pcntl_signal(SIGCONT, fn() => $this->unPauseProcessing());
 
 		$this->log('Registered signals');
 	}

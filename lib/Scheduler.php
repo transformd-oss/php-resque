@@ -16,7 +16,7 @@ use DateTime;
 */
 class Scheduler
 {
-	const VERSION = "0.1";
+	public const VERSION = "0.1";
 
 	/**
 	 * Enqueue a job in a given number of seconds from now.
@@ -29,7 +29,7 @@ class Scheduler
 	 * @param string $class The name of the class that contains the code to execute the job.
 	 * @param array $args Any optional arguments that should be passed when the job is executed.
 	 */
-	public static function enqueueIn($in, $queue, $class, array $args = array())
+	public static function enqueueIn($in, $queue, $class, array $args = [])
 	{
 		self::enqueueAt(time() + $in, $queue, $class, $args);
 	}
@@ -46,19 +46,14 @@ class Scheduler
 	 * @param string $class The name of the class that contains the code to execute the job.
 	 * @param array $args Any optional arguments that should be passed when the job is executed.
 	 */
-	public static function enqueueAt($at, $queue, $class, $args = array())
+	public static function enqueueAt($at, $queue, $class, $args = [])
 	{
 		self::validateJob($class, $queue);
 
 		$job = self::jobToHash($queue, $class, $args);
 		self::delayedPush($at, $job);
 
-		Event::trigger('afterSchedule', array(
-			'at'    => $at,
-			'queue' => $queue,
-			'class' => $class,
-			'args'  => $args,
-		));
+		Event::trigger('afterSchedule', ['at'    => $at, 'queue' => $queue, 'class' => $class, 'args'  => $args]);
 	}
 
 	/**
@@ -161,11 +156,7 @@ class Scheduler
 
 	private static function jobToHash($queue, $class, $args)
 	{
-		return array(
-			'class' => $class,
-			'args'  => array($args),
-			'queue' => $queue,
-		);
+		return ['class' => $class, 'args'  => [$args], 'queue' => $queue];
 	}
 
 	/**
@@ -224,13 +215,9 @@ class Scheduler
 	 */
 	public static function nextDelayedTimestamp($at = null)
 	{
-		if ($at === null) {
-			$at = time();
-		} else {
-			$at = self::getTimestamp($at);
-		}
+		$at = $at === null ? time() : self::getTimestamp($at);
 
-		$items = Resque::redis()->zrangebyscore('delayed_queue_schedule', '-inf', $at, array('limit' => array(0, 1)));
+		$items = Resque::redis()->zrangebyscore('delayed_queue_schedule', '-inf', $at, ['limit' => [0, 1]]);
 		if (!empty($items)) {
 			return $items[0];
 		}
@@ -249,7 +236,7 @@ class Scheduler
 		$timestamp = self::getTimestamp($timestamp);
 		$key = 'delayed:' . $timestamp;
 
-		$item = json_decode(Resque::redis()->lpop($key), true);
+		$item = json_decode((string) Resque::redis()->lpop($key), true);
 
 		self::cleanupTimestamp($key, $timestamp);
 		return $item;

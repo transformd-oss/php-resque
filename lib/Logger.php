@@ -14,12 +14,9 @@ use Psr\Log\LogLevel;
  */
 class Logger extends AbstractLogger
 {
-	public $verbose;
-
-	public function __construct($verbose = false)
-	{
-		$this->verbose = $verbose;
-	}
+	public function __construct(public $verbose = false)
+ {
+ }
 
 	/**
 	 * Logs with an arbitrary level.
@@ -29,7 +26,7 @@ class Logger extends AbstractLogger
 	 * @param array   $context  Variables to replace { placeholder }
 	 * @return null
 	 */
-	public function log($level, $message, array $context = array())
+	public function log($level, $message, array $context = [])
 	{
 		if ($this->verbose) {
 			fwrite(
@@ -39,7 +36,7 @@ class Logger extends AbstractLogger
 			return;
 		}
 
-		if (!($level === LogLevel::INFO || $level === LogLevel::DEBUG)) {
+		if ($level !== LogLevel::INFO && $level !== LogLevel::DEBUG) {
 			fwrite(
 				STDOUT,
 				'[' . $level . '] ' . $this->interpolate($message, $context) . PHP_EOL
@@ -55,10 +52,10 @@ class Logger extends AbstractLogger
 	 * @param  array   $context  Array of variables to use in message
 	 * @return string
 	 */
-	public function interpolate($message, array $context = array())
+	public function interpolate($message, array $context = [])
 	{
 		// build a replacement array with braces around the context keys
-		$replace = array();
+		$replace = [];
 		foreach ($context as $key => $val) {
 			$replace['{' . $key . '}'] = $val;
 		}

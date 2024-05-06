@@ -58,7 +58,7 @@ class FailureHandler
 	public static function getBackend()
 	{
 		if (self::$backend === null) {
-			self::$backend = 'Resque\Failure\RedisFailure';
+			self::$backend = \Resque\Failure\RedisFailure::class;
 		}
 
 		return self::$backend;

@@ -17,22 +17,12 @@ use Error;
  * @author		Chris Boulton <chris@bigcommerce.com>
  * @license		http://www.opensource.org/licenses/mit-license.php
  */
-class JobHandler
+class JobHandler implements \Stringable
 {
-	/**
-	 * @var string The name of the queue that this job belongs to.
-	 */
-	public $queue;
-
 	/**
 	 * @var \Resque\Worker\Resque Instance of the Resque worker running this job.
 	 */
 	public $worker;
-
-	/**
-	 * @var array Array containing details of the job.
-	 */
-	public $payload;
 
 	/**
 	 * @var object|\Resque\Job\JobInterface Instance of the class performing work for this job.
@@ -50,11 +40,9 @@ class JobHandler
 	 * @param string $queue The queue that the job belongs to.
 	 * @param array $payload array containing details of the job.
 	 */
-	public function __construct($queue, $payload)
-	{
-		$this->queue = $queue;
-		$this->payload = $payload;
-	}
+	public function __construct(public $queue, public $payload)
+ {
+ }
 
 	/**
 	 * Create a new job and save it to the specified queue.
@@ -80,13 +68,7 @@ class JobHandler
 				'Supplied $args must be an array.'
 			);
 		}
-		Resque::push($queue, array(
-			'class'	     => $class,
-			'args'	     => array($args),
-			'id'	     => $id,
-			'prefix'     => $prefix,
-			'queue_time' => microtime(true),
-		));
+		Resque::push($queue, ['class'	     => $class, 'args'	     => [$args], 'id'	     => $id, 'prefix'     => $prefix, 'queue_time' => microtime(true)]);
 
 		if ($monitor) {
 			Status::create($id, $prefix);
@@ -113,14 +95,13 @@ class JobHandler
 	}
 
 	/**
-	 * Find the next available job from the specified queues using blocking list pop
-	 * and return an instance of JobHandler for it.
-	 *
-	 * @param array             $queues
-	 * @param int               $timeout
-	 * @return false|object Null when there aren't any waiting jobs, instance of Resque\JobHandler when a job was found.
-	 */
-	public static function reserveBlocking(array $queues, $timeout = null)
+  * Find the next available job from the specified queues using blocking list pop
+  * and return an instance of JobHandler for it.
+  *
+  * @param int               $timeout
+  * @return false|object Null when there aren't any waiting jobs, instance of Resque\JobHandler when a job was found.
+  */
+ public static function reserveBlocking(array $queues, $timeout = null)
 	{
 		$item = Resque::blpop($queues, $timeout);
 
@@ -170,7 +151,7 @@ class JobHandler
 	public function getArguments()
 	{
 		if (!isset($this->payload['args'])) {
-			return array();
+			return [];
 		}
 
 		return $this->payload['args'][0];
@@ -218,7 +199,7 @@ class JobHandler
 			}
 
 			Event::trigger('afterPerform', $this);
-		} catch (DoNotPerformException $e) {
+		} catch (DoNotPerformException) {
 			// beforePerform/setUp have said don't perform this job. Return.
 			$result = false;
 		}
@@ -233,10 +214,7 @@ class JobHandler
 	 */
 	public function fail($exception)
 	{
-		Event::trigger('onFailure', array(
-			'exception' => $exception,
-			'job' => $this,
-		));
+		Event::trigger('onFailure', ['exception' => $exception, 'job' => $this]);
 
 		$this->updateStatus(Status::STATUS_FAILED);
 		if ($exception instanceof Error) {
@@ -292,11 +270,9 @@ class JobHandler
 	 *
 	 * @return string The string representation of the job.
 	 */
-	public function __toString()
+	public function __toString(): string
 	{
-		$name = array(
-			'Job{' . $this->queue . '}'
-		);
+		$name = ['Job{' . $this->queue . '}'];
 		if (!empty($this->payload['id'])) {
 			$name[] = 'ID: ' . $this->payload['id'];
 		}
@@ -308,10 +284,9 @@ class JobHandler
 	}
 
 	/**
-	 * @param Resque\Job\FactoryInterface $jobFactory
-	 * @return Resque\JobHandler
-	 */
-	public function setJobFactory(FactoryInterface $jobFactory)
+  * @return Resque\JobHandler
+  */
+ public function setJobFactory(FactoryInterface $jobFactory)
 	{
 		$this->jobFactory = $jobFactory;
 
@@ -334,10 +309,6 @@ class JobHandler
 	 */
 	private function getPrefix()
 	{
-		if (isset($this->payload['prefix'])) {
-			return $this->payload['prefix'];
-		}
-
-		return '';
+		return $this->payload['prefix'] ?? '';
 	}
 }

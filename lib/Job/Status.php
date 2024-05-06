@@ -11,22 +11,17 @@ use Resque\Resque;
  * @author		Chris Boulton <chris@bigcommerce.com>
  * @license		http://www.opensource.org/licenses/mit-license.php
  */
-class Status
+class Status implements \Stringable
 {
-	const STATUS_WAITING = 1;
-	const STATUS_RUNNING = 2;
-	const STATUS_FAILED = 3;
-	const STATUS_COMPLETE = 4;
+	public const STATUS_WAITING = 1;
+	public const STATUS_RUNNING = 2;
+	public const STATUS_FAILED = 3;
+	public const STATUS_COMPLETE = 4;
 
 	/**
 	 * @var string The prefix of the job status id.
 	 */
 	private $prefix;
-
-	/**
-	 * @var string The ID of the job this status class refers back to.
-	 */
-	private $id;
 
 	/**
 	 * @var mixed Cache variable if the status of this job is being monitored or not.
@@ -37,20 +32,16 @@ class Status
 	/**
 	 * @var array Array of statuses that are considered final/complete.
 	 */
-	private static $completeStatuses = array(
-		self::STATUS_FAILED,
-		self::STATUS_COMPLETE
-	);
+	private static $completeStatuses = [self::STATUS_FAILED, self::STATUS_COMPLETE];
 
 	/**
 	 * Setup a new instance of the job monitor class for the supplied job ID.
 	 *
 	 * @param string $id The ID of the job to manage the status for.
 	 */
-	public function __construct($id, $prefix = '')
+	public function __construct(private $id, $prefix = '')
 	{
-		$this->id = $id;
-		$this->prefix = empty($prefix) ? '' : "${prefix}_";
+		$this->prefix = empty($prefix) ? '' : "{$prefix}_";
 	}
 
 	/**
@@ -62,12 +53,7 @@ class Status
 	public static function create($id, $prefix = "")
 	{
 		$status = new self($id, $prefix);
-		$statusPacket = array(
-			'status'  => self::STATUS_WAITING,
-			'updated' => time(),
-			'started' => time(),
-			'result'  => null,
-		);
+		$statusPacket = ['status'  => self::STATUS_WAITING, 'updated' => time(), 'started' => time(), 'result'  => null];
 		Resque::redis()->set((string) $status, json_encode($statusPacket));
 
 		return $status;
@@ -111,12 +97,7 @@ class Status
 			return;
 		}
 
-		$statusPacket = array(
-			'status'  => $status,
-			'updated' => time(),
-			'started' => $this->fetch('started'),
-			'result'  => $result,
-		);
+		$statusPacket = ['status'  => $status, 'updated' => time(), 'started' => $this->fetch('started'), 'result'  => $result];
 		Resque::redis()->set((string)$this, json_encode($statusPacket));
 
 		// Expire the status for completed jobs after 24 hours
@@ -193,7 +174,7 @@ class Status
 	 *
 	 * @return string String representation of the current job status class.
 	 */
-	public function __toString()
+	public function __toString(): string
 	{
 		return 'job:' . $this->prefix . $this->id . ':status';
 	}
@@ -210,19 +191,17 @@ class Status
 			return false;
 		}
 
-		$statusPacket = json_decode(Resque::redis()->get((string)$this), true);
+		$statusPacket = json_decode((string) Resque::redis()->get((string)$this), true);
 		if (!$statusPacket) {
 			return false;
 		}
 
 		if (empty($value)) {
-			return $statusPacket;
-		} else {
-			if (isset($statusPacket[$value])) {
-				return $statusPacket[$value];
-			} else {
+      return $statusPacket;
+  } elseif (isset($statusPacket[$value])) {
+      return $statusPacket[$value];
+  } else {
 				return null;
 			}
-		}
 	}
 }
